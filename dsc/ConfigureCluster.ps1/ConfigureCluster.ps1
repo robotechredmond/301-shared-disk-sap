@@ -125,7 +125,7 @@ configuration ConfigureCluster
         }
 
         Script ClusterIPAddress {
-            SetScript  = "Get-ClusterGroup -Name 'Cluster Group' -ErrorAction SilentlyContinue | Get-ClusterResource | Where-Object ResourceType -eq 'IP Address' -ErrorAction SilentlyContinue | Set-ClusterParameter -Name ProbePort ${ListenerProbePort2}; Stop-ClusterGroup -Name 'Cluster Group'; Start-ClusterGroup -Name 'Cluster Group'"
+            SetScript  = "Get-ClusterGroup -Name 'Cluster Group' -ErrorAction SilentlyContinue | Get-ClusterResource | Where-Object ResourceType -eq 'IP Address' -ErrorAction SilentlyContinue | Set-ClusterParameter -Name ProbePort ${ListenerProbePort2}; `$global:DSCMachineStatus = 1"
             TestScript = "if ('${ListenerIpAddress2}' -eq '0.0.0.0') { `$true } else { (Get-ClusterGroup -Name 'Cluster Group' -ErrorAction SilentlyContinue | Get-ClusterResource | Where-Object ResourceType -eq 'IP Address' -ErrorAction SilentlyContinue | Get-ClusterParameter -Name ProbePort).Value -eq ${ListenerProbePort2}}"
             GetScript  = "@{Ensure = if ('${ListenerIpAddress2}' -eq '0.0.0.0') { 'Present' } elseif ((Get-ClusterGroup -Name 'Cluster Group' -ErrorAction SilentlyContinue | Get-ClusterResource | Where-Object ResourceType -eq 'IP Address' -ErrorAction SilentlyContinue | Get-ClusterParameter -Name ProbePort).Value -eq ${ListenerProbePort2}) {'Present'} else {'Absent'}}"
             DependsOn  = "[Script]CreateCluster"
