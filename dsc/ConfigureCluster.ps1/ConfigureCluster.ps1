@@ -37,7 +37,9 @@ configuration ConfigureCluster
 
         [String]$ClusterIPName = "IP Address ${ListenerIPAddress1}",
 
-        [Int]$DataDiskSizeGB,
+        [Int]$DataDiskSizeGB = 1023,
+
+        [String]$DataDiskDriveLetter = "F",
 
         [String]$WitnessStorageName,
 

@@ -73,6 +73,20 @@
                 "description": "Static private IP Address to be assigned to internal load balancer for clustered workload"
             }
         },
+        "ilbProbePort": {
+            "type": "int",
+            "metadata": {
+                "description": "TCP port used for ILB health probe"
+            },
+            "defaultValue": 49100
+        },
+        "enableOutboundSNAT": {
+            "type": "bool",
+            "metadata": {
+                "description": "Enable support for outbound SNAT with Azure Load Balancer"
+            },
+            "defaultValue": true
+        },
         "dataDiskSizeGB": {
             "type": "int",
             "minValue": 256,
@@ -81,6 +95,36 @@
                 "description": "Size of shared data disk for cluster in GB (Min=256, Max=32767)"
             },
             "defaultValue": 1023
+        },
+        "dataDiskDriveLetter": {
+            "type": "string",
+            "allowedValues": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z"
+            ],
+            "metadata": {
+                "description": "Drive Letter to assign to Shared Data Volume"
+            },
+            "defaultValue": "F"
         },
         "witnessType": {
             "type": "string",
@@ -179,7 +223,7 @@
                 "name": "probe0",
                 "properties": {
                     "protocol": "Tcp",
-                    "port": "49100",
+                    "port": "[parameters('ilbProbePort')]",
                     "intervalInSeconds": 5,
                     "numberOfProbes": 2
                 }
@@ -188,7 +232,7 @@
                 "name": "probe1",
                 "properties": {
                     "protocol": "Tcp",
-                    "port": "49101",
+                    "port": "[add(parameters('ilbProbePort'),1)]",
                     "intervalInSeconds": 5,
                     "numberOfProbes": 2
                 }
@@ -197,6 +241,15 @@
         "ilbProbePortArray": "[take(variables('ilbProbePorts'),variables('clusterIpNeed'))]",
         "snatPipName": "[concat(parameters('namePrefix'),'-snatpip')]",
         "snatLbName": "[concat(parameters('namePrefix'),'-snatlb')]",
+        "nicLbAddressPools": [
+            {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('ilbName')),'/backendAddressPools/bePool0')]"
+            },
+            {
+                "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('snatLbName')),'/backendAddressPools/bePool0')]"
+            }
+        ],
+        "nicLbAddressPoolArray": "[if(parameters('enableOutboundSNAT'),variables('nicLbAddressPools'),take(variables('nicLbAddressPools'),1))]",
         "vmCount": 2,
         "vmLoopMode": "serial",
         "vmImagePublisher": "MicrosoftWindowsServer",
@@ -331,6 +384,7 @@
             "sku": {
                 "name": "Standard"
             },
+            "condition": "[parameters('enableOutboundSNAT')]",
             "properties": {
                 "publicIPAddressVersion": "IPv4",
                 "publicIPAllocationMethod": "Static",
@@ -345,6 +399,7 @@
             "dependsOn": [
                 "[variables('snatPipName')]"
             ],
+            "condition": "[parameters('enableOutboundSNAT')]",
             "sku": {
                 "name": "Standard"
             },
@@ -413,14 +468,7 @@
                             "subnet": {
                                 "id": "[parameters('existingSubnetResourceID')]"
                             },
-                            "loadBalancerBackendAddressPools": [
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('ilbName')),'/backendAddressPools/bePool0')]"
-                                },
-                                {
-                                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('snatLbName')),'/backendAddressPools/bePool0')]"
-                                }
-                            ]
+                            "loadBalancerBackendAddressPools": "[variables('nicLbAddressPoolArray')]"
                         }
                     }
                 ],
@@ -546,6 +594,7 @@
                         "namePrefix": "[parameters('namePrefix')]",
                         "vmCount": "[variables('vmCount')]",
                         "dataDiskSizeGB": "[parameters('dataDiskSizeGB')]",
+                        "dataDiskDriveLetter": "[parameters('dataDiskDriveLetter')]",
                         "witnessType": "[parameters('witnessType')]",
                         "witnessStorageName": "[if(equals(parameters('witnessType'),'Cloud'),variables('witnessStorageName'),'')]",
                         "listenerIPAddress1": "[reference(variables('ilbName')).frontendIPConfigurations[0].properties.privateIPAddress]",
