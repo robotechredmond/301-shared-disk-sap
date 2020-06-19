@@ -46,6 +46,9 @@ configuration ConfigureCluster
         [System.Management.Automation.PSCredential]$WitnessStorageKey
     )
 
+    $DSCPreboot = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows Azure\ScriptHandler' -Name dscPreboot -ErrorAction SilentlyContinue
+    if (!$DSCPreboot) { Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure\ScriptHandler' -Name dscPreboot -Value $True; Start-Sleep -Seconds 30; Restart-Computer -Force }
+
     Import-DscResource -ModuleName PSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc
 
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("$($AdminCreds.UserName)@${DomainName}", $AdminCreds.Password)
@@ -64,40 +67,38 @@ configuration ConfigureCluster
     Node localhost
     {
 
-        WindowsFeature FC {
-            Name   = "Failover-Clustering"
+        WindowsFeature FC
+        {
+            Name = "Failover-Clustering"
             Ensure = "Present"
         }
 
-        WindowsFeature FCPS {
-            Name      = "RSAT-Clustering-PowerShell"
-            Ensure    = "Present"
-            DependsOn = "[WindowsFeature]FC"
+        WindowsFeature FCPS
+        {
+            Name = "RSAT-Clustering-PowerShell"
+            Ensure = "Present"
         }
 
         WindowsFeature FCCmd {
-            Name      = "RSAT-Clustering-CmdInterface"
-            Ensure    = "Present"
-            DependsOn = "[WindowsFeature]FCPS"
+            Name = "RSAT-Clustering-CmdInterface"
+            Ensure = "Present"
         }
 
         WindowsFeature FCMgmt {
             Name = "RSAT-Clustering-Mgmt"
             Ensure = "Present"
-            DependsOn = "[WindowsFeature]FCCmd"
         }
 
-        WindowsFeature ADPS {
-            Name      = "RSAT-AD-PowerShell"
-            Ensure    = "Present"
-            DependsOn = "[WindowsFeature]FCMgmt"
+        WindowsFeature ADPS
+        {
+            Name = "RSAT-AD-PowerShell"
+            Ensure = "Present"
         }
 
         WindowsFeature FS
         {
             Name = "FS-FileServer"
             Ensure = "Present"
-            DependsOn = "[WindowsFeature]ADPS"
         }
 
         WaitForADDomain DscForestWait 
@@ -107,7 +108,7 @@ configuration ConfigureCluster
             WaitForValidCredentials = $True
             WaitTimeout             = 600
             RestartCount            = 3
-            DependsOn               = "[WindowsFeature]FS"
+            DependsOn               = "[WindowsFeature]ADPS"
         }
 
         Computer DomainJoin
