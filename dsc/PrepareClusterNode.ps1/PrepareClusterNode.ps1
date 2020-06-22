@@ -21,8 +21,16 @@ configuration PrepareClusterNode
         [Int]$ListenerPort2 = 2383
     )
 
-    $DSCPreboot = Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -ErrorAction SilentlyContinue
-    if (!$DSCPreboot) { Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True; Start-Sleep -Seconds 30; Restart-Computer -Force }
+    try 
+    {
+        Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot
+    } 
+    catch 
+    {
+        Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True
+        Start-Sleep -Seconds 30
+        Restart-Computer -Force
+    }
 
     Import-DscResource -ModuleName PSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc
 
