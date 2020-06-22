@@ -132,7 +132,7 @@ configuration ConfigureCluster
             TestScript           = "(Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}'"
             GetScript            = "@{Ensure = if ((Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}') {'Present'} else {'Absent'}}"
             PsDscRunAsCredential = $DomainCreds
-            DependsOn            = "[Computer]DomainJoin"
+            DependsOn            = @("[Computer]DomainJoin","[WindowsFeature]FC","[WindowsFeature]FCPS")
         }
 
         Script ClusterIPAddress {
