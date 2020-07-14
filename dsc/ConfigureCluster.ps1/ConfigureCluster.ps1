@@ -63,7 +63,7 @@ configuration ConfigureCluster
 
     [System.Collections.ArrayList]$Nodes = @()
     For ($count = 1; $count -lt $VMCount; $count++) {
-        $Nodes.Add($NamePrefix + $Count.ToString())
+        $Nodes.Add($NamePrefix + "VM" + $Count.ToString())
     }
 
     If ($ListenerIPAddress2 -ne "0.0.0.0") {
@@ -172,19 +172,12 @@ configuration ConfigureCluster
             GetScript  = "@{Ensure = if ((Get-Cluster).SameSubnetDelay -eq 2000 -and (Get-Cluster).SameSubnetThreshold -eq 15 -and (Get-Cluster).CrossSubnetDelay -eq 3000 -and (Get-Cluster).CrossSubnetThreshold -eq 15) {'Present'} else {'Absent'}}"
             DependsOn  = "[Script]ClusterWitness"
         }
-        
-        Script AddClusterGroup {
-            SetScript  = "Add-ClusterGroup -Name '$ClusterGroup'"
-            TestScript = "'${ClusterGroup}' -in (Get-ClusterGroup).Name"
-            GetScript  = "@{Ensure = if ('${ClusterGroup}' -in (Get-ClusterGroup).Name) {'Present'} else {'Absent'}}"
-            DependsOn  = "[Script]IncreaseClusterTimeouts"
-        }
-       
+             
         Script FirewallRuleProbePort1 {
             SetScript  = "Remove-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue; New-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -Profile Domain -Direction Inbound -Action Allow -Enabled True -Protocol 'tcp' -LocalPort ${ListenerProbePort1}"
             TestScript = "(Get-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue).LocalPort -eq ${ListenerProbePort1}"
             GetScript  = "@{Ensure = if ((Get-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue).LocalPort -eq ${ListenerProbePort1}) {'Present'} else {'Absent'}}"
-            DependsOn  = "[Script]AddClusterGroup"
+            DependsOn  = "[Script]IncreaseClusterTimeouts"
         }
 
         Script FirewallRuleProbePort2 {

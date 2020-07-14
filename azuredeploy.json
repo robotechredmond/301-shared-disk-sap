@@ -12,9 +12,9 @@
         "namePrefix": {
             "type": "string",
             "minLength": 3,
-            "maxLength": 8,
+            "maxLength": 10,
             "metadata": {
-                "description": "Naming prefix for each new resource created. 3-char min, 8-char max, lowercase alphanumeric"
+                "description": "Naming prefix for each new resource created. 3-char min, 10-char max, lowercase alphanumeric"
             }
         },
         "existingDomainName": {
@@ -174,7 +174,7 @@
             }
         ],
         "diskArray": "[take(variables('dataDisks'),if(equals(parameters('witnessType'),'Cloud'),1,2))]",
-        "witnessStorageName": "[concat(parameters('namePrefix'),'w',uniqueString(resourceGroup().name))]",
+        "witnessStorageName": "[toLower(concat(parameters('namePrefix'),'w',uniqueString(resourceGroup().name)))]",
         "witnessStorageType": "Standard_LRS",
         "apiVersionStorage": "2019-06-01",
         "clusterIpNeed": "[if(not(startsWith(parameters('vmImageSku'),'2019')),2,1)]",
@@ -261,7 +261,7 @@
         "clusterConfigURL": "[concat(parameters('_artifactsLocation'),'/dsc/ConfigureCluster.ps1.zip')]",
         "clusterConfigScript": "ConfigureCluster.ps1",
         "clusterConfigFunction": "ConfigureCluster",
-        "clusterName": "[concat(parameters('namePrefix'),'c')]"
+        "clusterName": "[toUpper(concat(parameters('namePrefix'),'c'))]"
     },
     "resources": [
         {
@@ -478,7 +478,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-07-01",
-            "name": "[concat(parameters('namePrefix'), copyindex())]",
+            "name": "[concat(parameters('namePrefix'), 'vm', copyindex())]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('namePrefix'), copyindex(), '-nic'))]",
@@ -494,7 +494,7 @@
                     "id": "[resourceId('Microsoft.Compute/availabilitySets', variables('asName'))]"
                 },
                 "osProfile": {
-                    "computerName": "[concat(parameters('namePrefix'), copyindex())]",
+                    "computerName": "[toUpper(concat(parameters('namePrefix'), 'vm', copyindex()))]",
                     "adminUsername": "[parameters('existingAdminUsername')]",
                     "adminPassword": "[parameters('existingAdminPassword')]"
                 },
@@ -528,7 +528,7 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('namePrefix'),copyindex(1),'/PrepareClusterNode')]",
+            "name": "[concat(parameters('namePrefix'), 'vm', copyindex(1),'/PrepareClusterNode')]",
             "apiVersion": "2019-07-01",
             "location": "[parameters('location')]",
             "dependsOn": [
@@ -591,7 +591,7 @@
                     "configurationArguments": {
                         "domainName": "[parameters('existingDomainName')]",
                         "clusterName": "[variables('clusterName')]",
-                        "namePrefix": "[parameters('namePrefix')]",
+                        "namePrefix": "[toUpper(parameters('namePrefix'))]",
                         "vmCount": "[variables('vmCount')]",
                         "dataDiskSizeGB": "[parameters('dataDiskSizeGB')]",
                         "dataDiskDriveLetter": "[parameters('dataDiskDriveLetter')]",
