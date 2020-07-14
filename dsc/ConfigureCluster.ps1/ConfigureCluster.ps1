@@ -53,7 +53,7 @@ configuration ConfigureCluster
     catch 
     {
         Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True
-        Start-Sleep -Seconds 30
+        Start-Sleep -Seconds 60
         Restart-Computer -Force
     }
 
@@ -179,26 +179,12 @@ configuration ConfigureCluster
             GetScript  = "@{Ensure = if ('${ClusterGroup}' -in (Get-ClusterGroup).Name) {'Present'} else {'Absent'}}"
             DependsOn  = "[Script]IncreaseClusterTimeouts"
         }
-
-        Script AddClusterIPAddress {
-            SetScript  = "Add-ClusterResource -Name '${ClusterIpName}' -Group '${ClusterGroup}' -ResourceType 'IP Address' | Set-ClusterParameter -Multiple `@`{Address='${ListenerIpAddress1}';ProbePort=${ListenerProbePort1};SubnetMask='255.255.255.255';Network=(Get-ClusterNetwork)[0].Name;OverrideAddressMatch=1;EnableDhcp=0`}"
-            TestScript = "'${ClusterIPName}' -in (Get-ClusterResource).Name"
-            GetScript  = "@{Ensure = if ('${ClusterIPName}' -in (Get-ClusterResource).Name) {'Present'} else {'Absent'}}"
-            DependsOn  = "[Script]AddClusterGroup"
-        }
-
-        Script StartClusterGroup {
-            SetScript  = "Start-ClusterGroup -Name '$ClusterGroup'"
-            TestScript = "(Get-ClusterGroup -Name '$ClusterGroup').State -eq 'Online'"
-            GetScript  = "@{Ensure = if ((Get-ClusterGroup -Name '$ClusterGroup').State -eq 'Online') {'Present'} else {'Absent'}}"
-            DependsOn  = "[Script]AddClusterIPAddress"
-        }
-        
+       
         Script FirewallRuleProbePort1 {
             SetScript  = "Remove-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue; New-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -Profile Domain -Direction Inbound -Action Allow -Enabled True -Protocol 'tcp' -LocalPort ${ListenerProbePort1}"
             TestScript = "(Get-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue).LocalPort -eq ${ListenerProbePort1}"
             GetScript  = "@{Ensure = if ((Get-NetFirewallRule -DisplayName 'Failover Cluster - Probe Port 1' -ErrorAction SilentlyContinue | Get-NetFirewallPortFilter -ErrorAction SilentlyContinue).LocalPort -eq ${ListenerProbePort1}) {'Present'} else {'Absent'}}"
-            DependsOn  = "[Script]StartClusterGroup"
+            DependsOn  = "[Script]AddClusterGroup"
         }
 
         Script FirewallRuleProbePort2 {
