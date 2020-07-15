@@ -28,7 +28,7 @@ configuration PrepareClusterNode
     catch 
     {
         Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True
-        Start-Sleep -Seconds 60
+        Start-Sleep -Seconds 300
         Restart-Computer -Force
     }
 
