@@ -46,17 +46,6 @@ configuration ConfigureCluster
         [System.Management.Automation.PSCredential]$WitnessStorageKey
     )
 
-    try 
-    {
-        Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot
-    } 
-    catch 
-    {
-        Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True
-        Start-Sleep -Seconds 300
-        Restart-Computer -Force
-    }
-
     Import-DscResource -ModuleName PSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc
 
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("$($AdminCreds.UserName)@${DomainName}", $AdminCreds.Password)

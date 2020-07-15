@@ -542,7 +542,7 @@
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "typeHandlerVersion": "2.77",
-                "autoUpgradeMinorVersion": true,
+                "autoUpgradeMinorVersion": false,
                 "settings": {
                     "wmfVersion": "latest",
                     "configuration": {
@@ -580,7 +580,7 @@
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "typeHandlerVersion": "2.77",
-                "autoUpgradeMinorVersion": true,
+                "autoUpgradeMinorVersion": false,
                 "settings": {
                     "wmfVersion": "latest",
                     "configuration": {

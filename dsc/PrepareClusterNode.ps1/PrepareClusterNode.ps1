@@ -21,17 +21,6 @@ configuration PrepareClusterNode
         [Int]$ListenerPort2 = 2383
     )
 
-    try 
-    {
-        Get-ItemPropertyValue 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot
-    } 
-    catch 
-    {
-        Set-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Azure' -Name dscPreboot -Value $True
-        Start-Sleep -Seconds 300
-        Restart-Computer -Force
-    }
-
     Import-DscResource -ModuleName PSDesiredStateConfiguration, ComputerManagementDsc, ActiveDirectoryDsc
 
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("$($Admincreds.UserName)@${DomainName}", $Admincreds.Password)
