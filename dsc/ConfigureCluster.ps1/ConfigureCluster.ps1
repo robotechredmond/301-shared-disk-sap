@@ -64,12 +64,6 @@ configuration ConfigureCluster
     Node localhost
     {
 
-        WindowsFeature FC
-        {
-            Name = "Failover-Clustering"
-            Ensure = "Present"
-        }
-
         WindowsFeature FCPS
         {
             Name = "RSAT-Clustering-PowerShell"
@@ -114,6 +108,13 @@ configuration ConfigureCluster
             DomainName = $DomainName
             Credential = $DomainCreds
             DependsOn  = "[WaitForADDomain]DscForestWait"
+        }
+
+        WindowsFeature FC
+        {
+            Name = "Failover-Clustering"
+            Ensure = "Present"
+            DependsOn  = "[Computer]DomainJoin"
         }
 
         Script CreateCluster {
