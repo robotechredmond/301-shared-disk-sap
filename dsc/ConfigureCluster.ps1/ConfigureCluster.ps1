@@ -178,6 +178,8 @@ configuration ConfigureCluster
         }
 
         LocalConfigurationManager {
+            ActionAfterReboot = "ContinueConfiguration"
+            ConfigurationMode = "ApplyAndMonitor"
             RebootNodeIfNeeded = $True
         }
 

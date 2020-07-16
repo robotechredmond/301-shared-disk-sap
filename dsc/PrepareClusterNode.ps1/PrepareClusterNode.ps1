@@ -96,6 +96,8 @@ configuration PrepareClusterNode
 
         LocalConfigurationManager 
         {
+            ActionAfterReboot = "ContinueConfiguration"
+            ConfigurationMode = "ApplyAndMonitor"
             RebootNodeIfNeeded = $True
         }
 
