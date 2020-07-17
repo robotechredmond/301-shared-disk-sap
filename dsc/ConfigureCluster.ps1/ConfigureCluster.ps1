@@ -33,10 +33,6 @@ configuration ConfigureCluster
 
         [Int]$ListenerProbePort2 = 49101,
 
-        [String]$ClusterGroup = "${ClusterName}-group",
-
-        [String]$ClusterIPName = "IP Address ${ListenerIPAddress1}",
-
         [Int]$DataDiskSizeGB = 1023,
 
         [String]$DataDiskDriveLetter = "F",
