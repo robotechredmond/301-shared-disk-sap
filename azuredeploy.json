@@ -41,7 +41,7 @@
             "metadata": {
                 "description": "Size of the cluster node VMs to be created"
             },
-            "defaultValue": "Standard_DS3_v2"
+            "defaultValue": "Standard_D4s_v3"
         },
         "vmImageSku": {
             "type": "string",
