@@ -544,7 +544,7 @@
                 "typeHandlerVersion": "2.80",
                 "autoUpgradeMinorVersion": false,
                 "settings": {
-                    "wmfVersion": "latest",
+                    "wmfVersion": "5.0",
                     "configuration": {
                         "url": "[variables('clusterPrepURL')]",
                         "script": "[variables('clusterPrepScript')]",
@@ -582,7 +582,7 @@
                 "typeHandlerVersion": "2.80",
                 "autoUpgradeMinorVersion": false,
                 "settings": {
-                    "wmfVersion": "latest",
+                    "wmfVersion": "5.0",
                     "configuration": {
                         "url": "[variables('clusterConfigURL')]",
                         "script": "[variables('clusterConfigScript')]",
