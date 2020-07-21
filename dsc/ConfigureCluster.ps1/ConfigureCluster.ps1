@@ -51,12 +51,6 @@ configuration ConfigureCluster
         $Nodes.Add($NamePrefix + "VM" + $Count.ToString())
     }
 
-    If ($ListenerIPAddress2 -ne "0.0.0.0") {
-        $ClusterSetupOptions = "-StaticAddress ${ListenerIPAddress2}"
-    } else {
-        $ClusterSetupOptions = ""
-    }
-
     Node localhost
     {
 
@@ -114,7 +108,7 @@ configuration ConfigureCluster
         }
 
         Script CreateCluster {
-            SetScript            = "New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage ${ClusterSetupOptions}"
+            SetScript            = "If ('$ListenerIPAddress2' -ne '0.0.0.0') { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage -StaticAddress ${ListenerIPAddress2} } else { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage }"
             TestScript           = "(Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}'"
             GetScript            = "@{Ensure = if ((Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}') {'Present'} else {'Absent'}}"
             PsDscRunAsCredential = $DomainCreds

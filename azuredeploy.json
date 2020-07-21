@@ -542,9 +542,9 @@
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "typeHandlerVersion": "2.80",
-                "autoUpgradeMinorVersion": false,
+                "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "wmfVersion": "5.0",
+                    "wmfVersion": "latest",
                     "configuration": {
                         "url": "[variables('clusterPrepURL')]",
                         "script": "[variables('clusterPrepScript')]",
@@ -580,9 +580,9 @@
                 "publisher": "Microsoft.Powershell",
                 "type": "DSC",
                 "typeHandlerVersion": "2.80",
-                "autoUpgradeMinorVersion": false,
+                "autoUpgradeMinorVersion": true,
                 "settings": {
-                    "wmfVersion": "5.0",
+                    "wmfVersion": "latest",
                     "configuration": {
                         "url": "[variables('clusterConfigURL')]",
                         "script": "[variables('clusterConfigScript')]",
