@@ -54,32 +54,43 @@ configuration ConfigureCluster
     Node localhost
     {
 
+        WindowsFeature FC
+        {
+            Name = "Failover-Clustering"
+            Ensure = "Present"
+        }
+
         WindowsFeature FCPS
         {
             Name = "RSAT-Clustering-PowerShell"
             Ensure = "Present"
+            DependsOn  = "[WindowsFeature]FC"
         }
 
         WindowsFeature FCCmd {
             Name = "RSAT-Clustering-CmdInterface"
             Ensure = "Present"
+            DependsOn  = "[WindowsFeature]FCPS"
         }
 
         WindowsFeature FCMgmt {
             Name = "RSAT-Clustering-Mgmt"
             Ensure = "Present"
-        }
-
-        WindowsFeature ADPS
-        {
-            Name = "RSAT-AD-PowerShell"
-            Ensure = "Present"
+            DependsOn  = "[WindowsFeature]FCCmd"
         }
 
         WindowsFeature FS
         {
             Name = "FS-FileServer"
             Ensure = "Present"
+            DependsOn  = "[WindowsFeature]FCMgmt"
+        }
+
+        WindowsFeature ADPS
+        {
+            Name = "RSAT-AD-PowerShell"
+            Ensure = "Present"
+            DependsOn  = "[WindowsFeature]FS"
         }
 
         WaitForADDomain DscForestWait 
@@ -98,13 +109,6 @@ configuration ConfigureCluster
             DomainName = $DomainName
             Credential = $DomainCreds
             DependsOn  = "[WaitForADDomain]DscForestWait"
-        }
-
-        WindowsFeature FC
-        {
-            Name = "Failover-Clustering"
-            Ensure = "Present"
-            DependsOn  = "[Computer]DomainJoin"
         }
 
         Script CreateCluster {
