@@ -49,10 +49,18 @@ configuration ConfigureCluster
     Node localhost
     {
 
+        Script RebootFix {
+            SetScript            = "`$taskTrigger = New-ScheduledTaskTrigger -AtStartup; `$taskAction = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-Command Start-Sleep 300; Restart-Computer -Force'; `$taskSettings = New-ScheduledTaskSettingsSet; `$taskCreds = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; `$task = New-ScheduledTask -Action `$taskAction -Trigger `$taskTrigger -Settings `$taskSettings -Principal `$taskCreds; Register-ScheduledTask -TaskName 'RebootFix' -InputObject `$task"
+            TestScript           = "if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) { Stop-ScheduledTask -TaskName 'RebootFix'; (Disable-ScheduledTask -TaskName 'RebootFix').State -eq 'Disabled' } else { `$false }"
+            GetScript            = "@{Ensure = if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) {'Present'} else {'Absent'}}"
+            PsDscRunAsCredential = $DomainCreds
+        }
+        
         WindowsFeature FC
         {
             Name = "Failover-Clustering"
             Ensure = "Present"
+            DependsOn  = "[Script]RebootFix"
         }
 
         WindowsFeature FCPS
@@ -121,8 +129,7 @@ configuration ConfigureCluster
             PsDscRunAsCredential = $DomainCreds
             DependsOn  = "[Script]CreateCluster"
         }
-        
-<#
+
         for ($count = 1; $count -lt $VMCount; $count++) {
             Script "AddClusterNode_${count}" {
                 SetScript            = "Add-ClusterNode -Name ${NamePrefix}VM${count} -NoStorage"
@@ -132,7 +139,6 @@ configuration ConfigureCluster
                 DependsOn            = "[Script]ClusterIPAddress"
             }
         }
-#>
 
         Script AddClusterDisks {
             SetScript  = "Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Initialize-Disk -PartitionStyle GPT -PassThru -ErrorAction SilentlyContinue | Sort-Object -Property Number | % { [char]`$NextDriveLetter = (1 + [int](([int][char]'$DataDiskDriveLetter'..[int][char]'Z') | % { `$Disk = [char]`$_ ; Get-Partition -DriveLetter `$Disk -ErrorAction SilentlyContinue} | Select-Object -Last 1).DriveLetter); If ( `$NextDriveLetter -eq [char]1 ) { `$NextDriveLetter = '$DataDiskDriveLetter' }; New-Partition -InputObject `$_ -NewDriveLetter `$NextDriveLetter -UseMaximumSize  } | % { `$ClusterDisk = Format-Volume -DriveLetter `$(`$_.DriveLetter) -NewFilesystemLabel Cluster_Disk_`$(`$_.DriveLetter) -FileSystem NTFS -AllocationUnitSize 65536 -UseLargeFRS -Confirm:`$false | Get-Partition | Get-Disk | Add-ClusterDisk ; `$ClusterDisk.Name=`"Cluster_Disk_`$(`$_.DriveLetter)`" ; Start-ClusterResource -Name Cluster_Disk_`$(`$_.DriveLetter) }"
