@@ -46,11 +46,6 @@ configuration ConfigureCluster
 
     [System.Management.Automation.PSCredential]$DomainCreds = New-Object System.Management.Automation.PSCredential ("$($AdminCreds.UserName)@${DomainName}", $AdminCreds.Password)
 
-    [System.Collections.ArrayList]$Nodes = @()
-    For ($count = 1; $count -lt $VMCount; $count++) {
-        $Nodes.Add($NamePrefix + "VM" + $Count.ToString())
-    }
-
     Node localhost
     {
 
@@ -127,11 +122,11 @@ configuration ConfigureCluster
             DependsOn  = "[Script]CreateCluster"
         }
 
-        foreach ($Node in $Nodes) {
-            Script "AddClusterNode_${Node}" {
-                SetScript            = "Add-ClusterNode -Name ${Node} -NoStorage"
-                TestScript           = "'${Node}' -in (Get-ClusterNode).Name"
-                GetScript            = "@{Ensure = if ('${Node}' -in (Get-ClusterNode).Name) {'Present'} else {'Absent'}}"
+        for ($count = 1; $count -lt $VMCount; $count++) {
+            Script "AddClusterNode_${count}" {
+                SetScript            = "Add-ClusterNode -Name ${NamePrefix}VM${count} -NoStorage"
+                TestScript           = "'${NamePrefix}VM${count}' -in (Get-ClusterNode).Name"
+                GetScript            = "@{Ensure = if ('${NamePrefix}VM${count}' -in (Get-ClusterNode).Name) {'Present'} else {'Absent'}}"
                 PsDscRunAsCredential = $DomainCreds
                 DependsOn            = "[Script]ClusterIPAddress"
             }
