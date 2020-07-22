@@ -107,7 +107,7 @@ configuration ConfigureCluster
         }
 
         Script CreateCluster {
-            SetScript            = "If ('$ListenerIPAddress2' -ne '0.0.0.0') { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage -StaticAddress ${ListenerIPAddress2} } else { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage }"
+            SetScript            = "If ('${ListenerIPAddress2}' -ne '0.0.0.0') { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage -StaticAddress ${ListenerIPAddress2} } else { New-Cluster -Name ${ClusterName} -Node ${env:COMPUTERNAME} -NoStorage }"
             TestScript           = "(Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}'"
             GetScript            = "@{Ensure = if ((Get-Cluster -ErrorAction SilentlyContinue).Name -eq '${ClusterName}') {'Present'} else {'Absent'}}"
             PsDscRunAsCredential = $DomainCreds
@@ -121,7 +121,7 @@ configuration ConfigureCluster
             PsDscRunAsCredential = $DomainCreds
             DependsOn  = "[Script]CreateCluster"
         }
-
+<#
         for ($count = 1; $count -lt $VMCount; $count++) {
             Script "AddClusterNode_${count}" {
                 SetScript            = "Add-ClusterNode -Name ${NamePrefix}VM${count} -NoStorage"
@@ -131,7 +131,7 @@ configuration ConfigureCluster
                 DependsOn            = "[Script]ClusterIPAddress"
             }
         }
-
+#>
         Script AddClusterDisks {
             SetScript  = "Get-Disk | Where-Object PartitionStyle -eq 'RAW' | Initialize-Disk -PartitionStyle GPT -PassThru -ErrorAction SilentlyContinue | Sort-Object -Property Number | % { [char]`$NextDriveLetter = (1 + [int](([int][char]'$DataDiskDriveLetter'..[int][char]'Z') | % { `$Disk = [char]`$_ ; Get-Partition -DriveLetter `$Disk -ErrorAction SilentlyContinue} | Select-Object -Last 1).DriveLetter); If ( `$NextDriveLetter -eq [char]1 ) { `$NextDriveLetter = '$DataDiskDriveLetter' }; New-Partition -InputObject `$_ -NewDriveLetter `$NextDriveLetter -UseMaximumSize  } | % { `$ClusterDisk = Format-Volume -DriveLetter `$(`$_.DriveLetter) -NewFilesystemLabel Cluster_Disk_`$(`$_.DriveLetter) -FileSystem NTFS -AllocationUnitSize 65536 -UseLargeFRS -Confirm:`$false | Get-Partition | Get-Disk | Add-ClusterDisk ; `$ClusterDisk.Name=`"Cluster_Disk_`$(`$_.DriveLetter)`" ; Start-ClusterResource -Name Cluster_Disk_`$(`$_.DriveLetter) }"
             TestScript = "(Get-Disk | Where-Object PartitionStyle -eq 'RAW').Count -eq 0"
