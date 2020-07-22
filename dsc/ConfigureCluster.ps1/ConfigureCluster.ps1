@@ -53,7 +53,6 @@ configuration ConfigureCluster
             SetScript            = "`$taskTrigger = New-ScheduledTaskTrigger -AtStartup; `$taskAction = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-Command Start-Sleep 300; Restart-Computer -Force'; `$taskSettings = New-ScheduledTaskSettingsSet; `$taskCreds = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; `$task = New-ScheduledTask -Action `$taskAction -Trigger `$taskTrigger -Settings `$taskSettings -Principal `$taskCreds; Register-ScheduledTask -TaskName 'RebootFix' -InputObject `$task"
             TestScript           = "if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) { Stop-ScheduledTask -TaskName 'RebootFix'; (Disable-ScheduledTask -TaskName 'RebootFix').State -eq 'Disabled' } else { `$false }"
             GetScript            = "@{Ensure = if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) {'Present'} else {'Absent'}}"
-            PsDscRunAsCredential = $DomainCreds
         }
         
         WindowsFeature FC
