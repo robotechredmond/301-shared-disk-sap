@@ -49,17 +49,17 @@ configuration ConfigureCluster
     Node localhost
     {
 
-        Script RebootFix {
-            SetScript            = "`$taskTrigger = New-ScheduledTaskTrigger -AtStartup; `$taskAction = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-Command Start-Sleep 300; Restart-Computer -Force'; `$taskSettings = New-ScheduledTaskSettingsSet; `$taskCreds = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; `$task = New-ScheduledTask -Action `$taskAction -Trigger `$taskTrigger -Settings `$taskSettings -Principal `$taskCreds; Register-ScheduledTask -TaskName 'RebootFix' -InputObject `$task"
-            TestScript           = "if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) { Stop-ScheduledTask -TaskName 'RebootFix'; (Disable-ScheduledTask -TaskName 'RebootFix').State -eq 'Disabled' } else { `$false }"
-            GetScript            = "@{Ensure = if ((Get-ScheduledTask -TaskName 'RebootFix' -ErrorAction SilentlyContinue).State -ne `$null) {'Present'} else {'Absent'}}"
+        Script dscRebootFix1 {
+            SetScript            = "`$taskTrigger = New-ScheduledTaskTrigger -AtStartup; `$taskAction = New-ScheduledTaskAction -Execute 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Argument '-Command Start-Sleep 300; Restart-Computer -Force'; `$taskSettings = New-ScheduledTaskSettingsSet; `$taskCreds = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest; `$task = New-ScheduledTask -Action `$taskAction -Trigger `$taskTrigger -Settings `$taskSettings -Principal `$taskCreds; Register-ScheduledTask -TaskName 'dscRebootFix1' -InputObject `$task"
+            TestScript           = "if ((Get-ScheduledTask -TaskName 'dscRebootFix1' -ErrorAction SilentlyContinue).State -ne `$null) { Stop-ScheduledTask -TaskName 'dscRebootFix1'; (Disable-ScheduledTask -TaskName 'dscRebootFix1').State -eq 'Disabled' } else { `$false }"
+            GetScript            = "@{Ensure = if ((Get-ScheduledTask -TaskName 'dscRebootFix1' -ErrorAction SilentlyContinue).State -ne `$null) {'Present'} else {'Absent'}}"
         }
-        
+
         WindowsFeature FC
         {
             Name = "Failover-Clustering"
             Ensure = "Present"
-            DependsOn  = "[Script]RebootFix"
+            DependsOn  = "[Script]dscRebootFix1"
         }
 
         WindowsFeature FCPS
